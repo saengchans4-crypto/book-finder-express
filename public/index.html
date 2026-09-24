@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book Finder — Open Library Explorer (Express + DSA)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="head-row">
+    <div>
+      <h1 class="serif">Book Finder</h1>
+      <p>ระบบค้นหาและจัดเรียงหนังสือพัฒนาด้วย Express.js & Custom DSA</p>
+    </div>
+    <button id="themeBtn" class="ghost-btn" title="สลับธีม">🌙 โหมดมืด</button>
+  </div>
+  <div class="searchbar">
+    <input id="q" type="text" placeholder="ค้นหาชื่อหนังสือหรือผู้แต่ง..." autocomplete="off">
+    <div id="suggest" class="suggestions"></div>
+    <button id="go">ค้นหา</button>
+    <button id="surprise" class="ghost-btn" title="สุ่มหนังสือ">🎲 สุ่มหนังสือ</button>
+  </div>
+</header>
+
+<main>
+  <section class="results-area">
+    <div class="toolbar">
+      <div>
+        <label for="sortSel">เรียงตาม</label>
+        <select id="sortSel">
+          <option value="relevance">ความเกี่ยวข้อง</option>
+          <option value="edition_desc">จำนวน Edition มากที่สุด (Custom Merge Sort)</option>
+          <option value="edition_asc">จำนวน Edition น้อยที่สุด</option>
+          <option value="year_desc">ปีพิมพ์ล่าสุดก่อน</option>
+          <option value="year_asc">ปีพิมพ์เก่าสุดก่อน</option>
+          <option value="title_asc">ชื่อ A–Z</option>
+        </select>
+      </div>
+      <div class="jumpyear">
+        <label for="yearJump">กระโดดไปปี (Binary Search)</label>
+        <input id="yearJump" type="number" placeholder="เช่น 1995" style="width:90px">
+        <button id="jumpBtn" class="ghost-btn">ไป</button>
+      </div>
+      <div class="status" id="status">พิมพ์คำค้นหาเพื่อเริ่มใช้งาน</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container" id="paginationControls" style="display:none;">
+      <button id="prevPageBtn" class="ghost-btn">◀ หน้าก่อนหน้า</button>
+      <span id="pageIndicator">หน้า 1</span>
+      <button id="nextPageBtn" class="ghost-btn">หน้าถัดไป ▶</button>
+      <button id="loadmoreBtn" class="loadmore">โหลดเพิ่มในหน้านี้ (Queue)</button>
+    </div>
+  </section>
+
+  <aside class="rail">
+    <h2>ดูล่าสุด</h2>
+    <div class="sub">Stack (LIFO) — เก็บ 8 รายการล่าสุด</div>
+    <div id="stackList"><div class="empty">ยังไม่มีรายการ</div></div>
+
+    <div class="compare-panel">
+      <h2>เปรียบเทียบ</h2>
+      <div class="sub">Set Intersection — เลือกได้สูงสุด 3 เล่ม</div>
+      <div id="cmpList"><div class="empty">กด "เปรียบเทียบ" ที่การ์ดหนังสือ</div></div>
+      <div id="shared"></div>
+    </div>
+  </aside>
+</main>
+
+<div id="modalBg" class="modal-bg">
+  <div class="modal">
+    <button id="modalClose" class="ghost-btn modal-close">ปิด ✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
