@@ -64,7 +64,7 @@ function cacheSet(key, value) {
 
 /* ===== เรียก Open Library พร้อม timeout 8 วินาที กันค้าง ===== */
 async function fetchJson(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
   if (!response.ok) {
     throw new Error(`Open Library responded with status ${response.status}`);
   }
