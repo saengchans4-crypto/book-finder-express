@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import BookCard from '../components/BookCard';
 import { mergeSort, binarySearchClosest, shuffle } from '../dsa';
-import { searchBooks, workId } from '../api';
+import { workId } from '../api';
 
 const yearAsc = (b) => b.first_publish_year || 9999;
 const SEEDS = ['love', 'war', 'space', 'mystery', 'ocean', 'dream', 'city', 'magic', 'journey', 'science'];
 
 export default function HomePage() {
-  const { query, books, total, status, hasMore, run, more, suggest } = useApp();
-  const nav = useNavigate();
+  const { query, books, total, status, hasMore, run, more, suggest, recent, compare, toggleCompare } = useApp();
+  const location = useLocation();
   const [text, setText] = useState(query);
   const [sug, setSug] = useState([]);
   const [sort, setSort] = useState('relevance');
@@ -45,16 +45,19 @@ export default function HomePage() {
     setTimeout(() => setHl(null), 2200);
   };
 
-  const surprise = async () => {
-    try {
-      const data = await searchBooks(shuffle(SEEDS)[0]);   // Fisher–Yates เลือกคำ
-      const pick = shuffle(data.docs || [])[0];            // Fisher–Yates เลือกเล่ม
-      if (pick) nav(`/book/${workId(pick.key)}`);
-    } catch { /* ignore */ }
+  // สุ่มหมวดใหม่ (Fisher–Yates) ที่ไม่ซ้ำหมวดเดิม แล้วแสดงรายการทั้งหมดของหมวดนั้น
+  const reroll = () => {
+    const pool = SEEDS.filter((s) => s !== query);
+    run(shuffle(pool)[0]);
   };
 
   return (
     <section>
+      <div className="hero">
+        <h1>Book Finder</h1>
+        <p>ค้นหาและจัดเรียงหนังสือจาก Open Library</p>
+      </div>
+
       <div className="searchbar">
         <div className="sbox">
           <input value={text} placeholder="ค้นหาชื่อหนังสือหรือผู้แต่ง..." onChange={(e) => onType(e.target.value)}
@@ -65,45 +68,82 @@ export default function HomePage() {
             </div>
           )}
         </div>
-        <button className="btn primary" onClick={() => submit(text)}>ค้นหา</button>
-        <button className="btn" onClick={surprise}>🎲 สุ่มให้หน่อย</button>
+        <button className="btn primary big" onClick={() => submit(text)}>ค้นหา</button>
+        <button className="btn soft big" onClick={reroll} disabled={status === 'loading'}>
+          {status === 'loading' ? 'กำลังโหลด...' : '🎲 สุ่มหนังสือ'}
+        </button>
       </div>
 
-      <div className="toolbar">
-        <label>เรียงตาม
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="relevance">ความเกี่ยวข้อง</option>
-            <option value="edition_desc">จำนวน Edition มากสุด</option>
-            <option value="edition_asc">จำนวน Edition น้อยสุด</option>
-            <option value="year_desc">ปีล่าสุดก่อน</option>
-            <option value="year_asc">ปีเก่าสุดก่อน</option>
-            <option value="title">ชื่อ A–Z</option>
-          </select>
-        </label>
-        <label>กระโดดไปปี (Binary Search)
-          <input type="number" value={year} placeholder="เช่น 1995" style={{ width: 90 }} onChange={(e) => setYear(e.target.value)} />
-          <button className="btn small" onClick={jump}>ไป</button>
-        </label>
-        <span className="status">
-          {status === 'loading' && 'กำลังค้นหา...'}
-          {status === 'error' && 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'}
-          {status === 'ready' && `พบ ${total.toLocaleString()} รายการ (แสดง ${books.length})`}
-        </span>
-      </div>
+      <div className="layout">
+        <div className="results">
+          <div className="toolbar">
+            <label>เรียงตาม
+              <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="relevance">ความเกี่ยวข้อง</option>
+                <option value="edition_desc">จำนวน Edition มากสุด</option>
+                <option value="edition_asc">จำนวน Edition น้อยสุด</option>
+                <option value="year_desc">ปีล่าสุดก่อน</option>
+                <option value="year_asc">ปีเก่าสุดก่อน</option>
+                <option value="title">ชื่อ A–Z</option>
+              </select>
+            </label>
+            <label>กระโดดไปปี
+              <input type="number" value={year} placeholder="เช่น 1995" style={{ width: 90 }} onChange={(e) => setYear(e.target.value)} />
+              <button className="btn small" onClick={jump}>ไป</button>
+            </label>
+            <span className="status">
+              {status === 'loading' && 'กำลังค้นหา...'}
+              {status === 'ready' && `พบทั้งหมด ${total.toLocaleString()} รายการ (แสดง ${books.length})`}
+            </span>
+          </div>
 
-      <div className="grid">
-        {sorted.map((b) => <BookCard key={b.key} book={b} highlight={hl === b.key} />)}
+          <div className="grid">
+            {status === 'loading' && books.length === 0 &&
+              Array.from({ length: 8 }, (_, i) => <div className="skel" key={i} />)}
+            {sorted.map((b) => <BookCard key={b.key} book={b} highlight={hl === b.key} />)}
+          </div>
+
+          {status === 'ready' && books.length === 0 && (
+            <p className="empty">ไม่พบหนังสือที่ตรงกับ "{query}" ลองใช้คำอื่น หรือกด 🎲 สุ่มหนังสือ</p>
+          )}
+          {status === 'error' && (
+            <p className="empty">
+              เชื่อมต่อไม่สำเร็จ{' '}
+              <button className="btn small" onClick={() => run(query || shuffle(SEEDS)[0])}>ลองใหม่</button>
+            </p>
+          )}
+          {hasMore && <button className="btn loadmore" onClick={more}>โหลดเพิ่ม</button>}
+        </div>
+
+        <aside className="rail">
+          <div className="panel">
+            <h3>ดูล่าสุด</h3>
+            <p className="rail-sub">เก็บ 8 รายการล่าสุดที่เปิดดู</p>
+            {recent.length === 0 && <p className="empty">ยังไม่มีรายการ</p>}
+            <ul className="rail-list">
+              {recent.map((b) => (
+                <li key={b.key}>
+                  <Link to={`/book/${workId(b.key)}`} state={{ background: location }}>{b.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="panel">
+            <h3>เปรียบเทียบ</h3>
+            <p className="rail-sub">เลือกได้สูงสุด 3 เล่ม</p>
+            {compare.length === 0 && <p className="empty">กด "เปรียบเทียบ" ที่การ์ดหนังสือ</p>}
+            <ul className="rail-list">
+              {compare.map((b) => (
+                <li key={b.key}>
+                  <span>{b.title}</span>
+                  <button className="x" onClick={() => toggleCompare(b)} aria-label="เอาออก">✕</button>
+                </li>
+              ))}
+            </ul>
+            {compare.length >= 2 && <Link className="btn small" to="/compare">ดูผลเปรียบเทียบ</Link>}
+          </div>
+        </aside>
       </div>
-         {status === 'ready' && books.length === 0 && (
-     <p className="empty">ไม่พบหนังสือที่ตรงกับ "{query}" ลองใช้คำอื่น หรือกด 🎲 สุ่มให้หน่อย</p>
-   )}
-   {status === 'error' && (
-     <p className="empty">
-       เชื่อมต่อไม่สำเร็จ{' '}
-       <button className="btn small" onClick={() => run(query || shuffle(SEEDS)[0])}>ลองใหม่</button>
-     </p>
-   )}
-      {hasMore && <button className="btn loadmore" onClick={more}>โหลดเพิ่ม</button>}
     </section>
   );
 }

@@ -7,7 +7,7 @@ export const pageGraph = {
   about: ['home'],
 };
 export const pagePaths = { home: '/', compare: '/compare', history: '/history', about: '/about' };
-export const pageLabels = { home: 'ค้นหา', compare: 'เปรียบเทียบ', history: 'ดูล่าสุด', about: 'Graph / เกี่ยวกับ' };
+export const pageLabels = { home: 'หน้าหลัก', compare: 'เปรียบเทียบ', history: 'ดูล่าสุด', about: 'Graph / เกี่ยวกับ' };
 
 // BFS: queue + visited Set  → O(V+E)
 export function canReach(start, end) {

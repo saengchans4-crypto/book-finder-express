@@ -49,7 +49,7 @@ class CustomHashTable {
 
 /* ===== Cache: เก็บใน Hash Table พร้อมเวลาหมดอายุ (TTL 10 นาที) ===== */
 const apiCache = new CustomHashTable(128);
-const CACHE_TTL_MS = 10 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 60 * 1000;
 
 function cacheGet(key) {
   const hit = apiCache.get(key);
@@ -148,9 +148,30 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
+/* ===== Warm-up: โหลดหมวดที่ใช้สุ่มเก็บใน cache ล่วงหน้า ให้ปุ่มสุ่มตอบทันที ===== */
+const WARM_SEEDS = ['love', 'war', 'space', 'mystery', 'ocean', 'dream', 'city', 'magic', 'journey', 'science'];
+
+async function warmCache() {
+  for (const seed of WARM_SEEDS) {
+    const key = `search:${seed}:1:18`; // รูปแบบ key ต้องตรงกับที่ /api/search ใช้
+    if (cacheGet(key)) continue;
+    try {
+      const fields = 'key,title,author_name,first_publish_year,edition_count,subject,cover_i';
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(seed)}&fields=${fields}&offset=0&limit=18`;
+      const data = await fetchJson(url);
+      cacheSet(key, { docs: data.docs || [], numFound: data.numFound || 0, page: 1, limit: 18 });
+    } catch (error) {
+      console.error('warm-up skip:', seed, error.message);
+    }
+  }
+  console.log('Cache warm-up done');
+}
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  warmCache();                                 // ทำเบื้องหลัง ไม่ block เซิร์ฟเวอร์
+  setInterval(warmCache, 50 * 60 * 1000);      // โหลดใหม่ก่อน cache หมดอายุ
 });
 
 module.exports = app;
