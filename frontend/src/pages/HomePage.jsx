@@ -94,6 +94,15 @@ export default function HomePage() {
       <div className="grid">
         {sorted.map((b) => <BookCard key={b.key} book={b} highlight={hl === b.key} />)}
       </div>
+         {status === 'ready' && books.length === 0 && (
+     <p className="empty">ไม่พบหนังสือที่ตรงกับ "{query}" ลองใช้คำอื่น หรือกด 🎲 สุ่มให้หน่อย</p>
+   )}
+   {status === 'error' && (
+     <p className="empty">
+       เชื่อมต่อไม่สำเร็จ{' '}
+       <button className="btn small" onClick={() => run(query || shuffle(SEEDS)[0])}>ลองใหม่</button>
+     </p>
+   )}
       {hasMore && <button className="btn loadmore" onClick={more}>โหลดเพิ่ม</button>}
     </section>
   );
