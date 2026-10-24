@@ -1,9 +1,9 @@
 const express = require('express');
-const path = require('path');
 const app = express();
 
 /* ==========================================================================
-   DSA: Custom Hash Table (เขียนเองด้วย Array of Buckets + Hash Function + Chaining)
+   DSA: Custom Hash Table (Array of Buckets + Hash Function + Chaining)
+   get/set เฉลี่ย O(1), กรณีแย่สุด O(n) เมื่อทุก key ชนกันใน bucket เดียว
    ========================================================================== */
 class CustomHashTable {
   constructor(size = 64) {
@@ -47,78 +47,105 @@ class CustomHashTable {
   }
 }
 
+/* ===== Cache: เก็บใน Hash Table พร้อมเวลาหมดอายุ (TTL 10 นาที) ===== */
 const apiCache = new CustomHashTable(128);
+const CACHE_TTL_MS = 10 * 60 * 1000;
 
-// เสิร์ฟไฟล์ Static จากโฟลเดอร์ public
-app.use(express.static(path.join(__dirname, 'public')));
+function cacheGet(key) {
+  const hit = apiCache.get(key);
+  if (!hit) return undefined;
+  if (Date.now() > hit.expires) return undefined; // หมดอายุ = นับเป็น miss
+  return hit.value;
+}
 
-// API Endpoint: ค้นหาหนังสือ
+function cacheSet(key, value) {
+  apiCache.set(key, { value, expires: Date.now() + CACHE_TTL_MS });
+}
+
+/* ===== เรียก Open Library พร้อม timeout 8 วินาที กันค้าง ===== */
+async function fetchJson(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) {
+    throw new Error(`Open Library responded with status ${response.status}`);
+  }
+  return response.json();
+}
+
+/* ===== API: ค้นหาหนังสือ ===== */
 app.get('/api/search', async (req, res) => {
+  const started = Date.now();
+
+  // --- validate ---
+  const query = String(req.query.q || '').trim();
+  const page = Number.parseInt(req.query.page, 10) || 1;
+  const limit = Number.parseInt(req.query.limit, 10) || 18;
+
+  if (query.length > 100) {
+    return res.status(400).json({ error: 'คำค้นยาวเกิน 100 ตัวอักษร' });
+  }
+  if (page < 1 || page > 50 || limit < 1 || limit > 40) {
+    return res.status(400).json({ error: 'page ต้องอยู่ 1-50 และ limit ต้องอยู่ 1-40' });
+  }
+  if (!query) {
+    return res.json({ docs: [], numFound: 0, page, limit, cached: false, ms: 0 });
+  }
+
   try {
-    const query = (req.query.q || '').trim();
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 18;
-    const offset = (page - 1) * limit;
-
-    if (!query) {
-      return res.json({ docs: [], numFound: 0, page, limit });
-    }
-
     const cacheKey = `search:${query.toLowerCase()}:${page}:${limit}`;
-    if (apiCache.has(cacheKey)) {
-      return res.json({ ...apiCache.get(cacheKey), cached: true });
+    const hit = cacheGet(cacheKey);
+    if (hit) {
+      return res.json({ ...hit, cached: true, ms: Date.now() - started });
     }
 
+    const offset = (page - 1) * limit;
     const fields = 'key,title,author_name,first_publish_year,edition_count,subject,cover_i';
-    const targetUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&fields=${fields}&offset=${offset}&limit=${limit}`;
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&fields=${fields}&offset=${offset}&limit=${limit}`;
 
-    const response = await fetch(targetUrl);
-    if (!response.ok) {
-      throw new Error(`Open Library API responded with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    const resultPayload = {
+    const data = await fetchJson(url);
+    const payload = {
       docs: data.docs || [],
       numFound: data.numFound || 0,
       page,
-      limit
+      limit,
     };
 
-    apiCache.set(cacheKey, resultPayload);
-    res.json({ ...resultPayload, cached: false });
+    cacheSet(cacheKey, payload);
+    res.json({ ...payload, cached: false, ms: Date.now() - started });
   } catch (error) {
-    console.error('Express Search API Error:', error);
-    res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลจาก Open Library ได้', details: error.message });
+    console.error('Search error:', error.message);
+    res.status(502).json({ error: 'ไม่สามารถดึงข้อมูลจาก Open Library ได้ ลองใหม่อีกครั้ง' });
   }
 });
 
-// API Endpoint: ดึงรายละเอียดหนังสือรายเล่ม
+/* ===== API: รายละเอียดหนังสือรายเล่ม ===== */
 app.get('/api/work', async (req, res) => {
-  try {
-    const workKey = req.query.key;
-    if (!workKey) return res.status(400).json({ error: 'Missing work key' });
+  const started = Date.now();
+  const workKey = String(req.query.key || '');
 
+  // key ต้องหน้าตาแบบ /works/OL123W เท่านั้น กัน path แปลก ๆ
+  if (!/^\/works\/OL\d+W$/.test(workKey)) {
+    return res.status(400).json({ error: 'รูปแบบ key ไม่ถูกต้อง (ต้องเป็น /works/OL...W)' });
+  }
+
+  try {
     const cacheKey = `work:${workKey}`;
-    if (apiCache.has(cacheKey)) {
-      return res.json({ ...apiCache.get(cacheKey), cached: true });
+    const hit = cacheGet(cacheKey);
+    if (hit) {
+      return res.json({ ...hit, cached: true, ms: Date.now() - started });
     }
 
-    const targetUrl = `https://openlibrary.org${workKey}.json`;
-    const response = await fetch(targetUrl);
-    if (!response.ok) throw new Error('Work fetch error');
-
-    const data = await response.json();
-    apiCache.set(cacheKey, data);
-    res.json({ ...data, cached: false });
+    const data = await fetchJson(`https://openlibrary.org${workKey}.json`);
+    cacheSet(cacheKey, data);
+    res.json({ ...data, cached: false, ms: Date.now() - started });
   } catch (error) {
-    res.status(500).json({ error: 'ไม่สามารถดึงรายละเอียดหนังสือได้' });
+    console.error('Work error:', error.message);
+    res.status(502).json({ error: 'ไม่สามารถดึงรายละเอียดหนังสือได้' });
   }
 });
 
-// Fallback Route สำหรับ Express 5 (ไม่ใช้ '*')
+/* ===== route ที่ไม่มี → 404 แบบ JSON ===== */
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.status(404).json({ error: 'Not found' });
 });
 
 const PORT = process.env.PORT || 3000;
