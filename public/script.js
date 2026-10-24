@@ -114,6 +114,29 @@ class Queue {
 const fetchQueue = new Queue();
 
 /* ==========================================================================
+   DSA #6b: Fisher–Yates Shuffle — ใช้เลือกคำค้นหาแบบสุ่ม (ไม่ลำเอียง)
+   ========================================================================== */
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// คำค้นหากว้าง ๆ สำหรับสุ่มหนังสือ — ตั้งใจไม่ใส่คำที่มักโยง Harry Potter เป็นอันดับแรก
+const RANDOM_SEEDS = [
+  'mystery', 'ocean', 'space', 'dragon', 'journey', 'music',
+  'science', 'adventure', 'history', 'mountain', 'forest',
+  'island', 'poetry', 'philosophy', 'cooking', 'war'
+];
+
+function pickRandomSeed() {
+  return shuffleArray(RANDOM_SEEDS)[0];
+}
+
+/* ==========================================================================
    DSA #6: Binary Search (กระโดดไปค้นหาปีที่ใกล้เคียงที่สุดใน Array ที่เรียงแล้ว)
    ========================================================================== */
 function binarySearchClosestYear(sortedArr, targetYear) {
@@ -299,12 +322,22 @@ loadmoreBtn.onclick = async () => {
 function renderStack() {
   const el = document.getElementById('stackList');
   if (!recentStack.items.length) { el.innerHTML = '<div class="empty">ยังไม่มีรายการ</div>'; return; }
-  el.innerHTML = recentStack.items.map(b => `
-    <div class="stack-item">
+  el.innerHTML = recentStack.items.map((b, i) => `
+    <div class="stack-item" data-idx="${i}" role="button" tabindex="0">
       <b>${escapeHTML(b.title)}</b>
       <span>📖 ${b.edition_count || 1} Editions</span>
     </div>
   `).join('');
+
+  // ผูกคลิก/กด Enter ให้เปิด modal เหมือนคลิกการ์ดในกริดปกติ
+  [...el.children].forEach((node, i) => {
+    const book = recentStack.items[i];
+    const open = () => { recentStack.push(book); renderStack(); openDetail(book); };
+    node.addEventListener('click', open);
+    node.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+    });
+  });
 }
 
 /* ==========================================================================
@@ -415,10 +448,10 @@ document.getElementById('jumpBtn').onclick = () => {
    Random Surprise (Fisher-Yates Shuffle)
    ========================================================================== */
 document.getElementById('surprise').onclick = async () => {
-  const seeds = ['harry', 'ring', 'space', 'history', 'art', 'science', 'computer'];
-  const pickedSeed = seeds[Math.floor(Math.random() * seeds.length)];
+  const pickedSeed = pickRandomSeed();
+  const randomPage = Math.floor(Math.random() * 5) + 1; // สุ่มหน้า 1–5 กันได้ผลลัพธ์เดิมซ้ำทุกครั้ง
   qInput.value = pickedSeed;
-  await runSearch(pickedSeed, 1);
+  await runSearch(pickedSeed, randomPage);
 };
 
 /* ==========================================================================
@@ -456,5 +489,10 @@ function applyTheme(dark) {
 themeBtn.onclick = () => applyTheme(!document.body.classList.contains('dark'));
 try { applyTheme(localStorage.getItem('theme') === 'dark'); } catch (e) {}
 
-// ค้นหาเริ่มต้นเมื่อเปิดหน้าเว็บ
-runSearch('Harry Potter', 1);
+// ค้นหาเริ่มต้นเมื่อเปิดหน้าเว็บ — สุ่มคำค้นหาและสุ่มหน้า แทนที่จะ hardcode 'Harry Potter'
+(function loadInitialRandomBooks() {
+  const seed = pickRandomSeed();
+  const randomPage = Math.floor(Math.random() * 5) + 1;
+  qInput.value = seed;
+  runSearch(seed, randomPage);
+})();
