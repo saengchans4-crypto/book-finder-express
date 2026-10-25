@@ -47,7 +47,7 @@ class CustomHashTable {
   }
 }
 
-/* ===== Cache: เก็บใน Hash Table พร้อมเวลาหมดอายุ (TTL 10 นาที) ===== */
+/* ===== Cache: เก็บใน Hash Table พร้อมเวลาหมดอายุ (TTL 1 ชั่วโมง) ===== */
 const apiCache = new CustomHashTable(128);
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
@@ -62,7 +62,7 @@ function cacheSet(key, value) {
   apiCache.set(key, { value, expires: Date.now() + CACHE_TTL_MS });
 }
 
-/* ===== เรียก Open Library พร้อม timeout 8 วินาที กันค้าง ===== */
+/* ===== เรียก Open Library พร้อม timeout 15 วินาที กันค้าง ===== */
 async function fetchJson(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
   if (!response.ok) {
@@ -112,8 +112,14 @@ app.get('/api/search', async (req, res) => {
     cacheSet(cacheKey, payload);
     res.json({ ...payload, cached: false, ms: Date.now() - started });
   } catch (error) {
-    console.error('Search error:', error.message);
-    res.status(502).json({ error: 'ไม่สามารถดึงข้อมูลจาก Open Library ได้ ลองใหม่อีกครั้ง' });
+    
+console.error('Search error:', error);
+console.error('Error cause:', error.cause);
+
+res.status(502).json({
+  error: 'ไม่สามารถดึงข้อมูลจาก Open Library ได้ ลองใหม่อีกครั้ง'
+});
+
   }
 });
 
@@ -151,10 +157,10 @@ app.use((req, res) => {
 /* ===== Warm-up: โหลดหมวดที่ใช้สุ่มเก็บใน cache ล่วงหน้า ให้ปุ่มสุ่มตอบทันที ===== */
 const WARM_SEEDS = ['love', 'war', 'space', 'mystery', 'ocean', 'dream', 'city', 'magic', 'journey', 'science'];
 
-async function warmCache() {
+async function warmCache(force = false) {
   for (const seed of WARM_SEEDS) {
     const key = `search:${seed}:1:18`; // รูปแบบ key ต้องตรงกับที่ /api/search ใช้
-    if (cacheGet(key)) continue;
+    if (!force && cacheGet(key)) continue; // force = โหลดทับแม้ยังไม่หมดอายุ
     try {
       const fields = 'key,title,author_name,first_publish_year,edition_count,subject,cover_i';
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(seed)}&fields=${fields}&offset=0&limit=18`;
@@ -171,7 +177,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   warmCache();                                 // ทำเบื้องหลัง ไม่ block เซิร์ฟเวอร์
-  setInterval(warmCache, 50 * 60 * 1000);      // โหลดใหม่ก่อน cache หมดอายุ
+  setInterval(() => warmCache(true), 50 * 60 * 1000); // โหลดทับใหม่ก่อน cache หมดอายุ (TTL 60 นาที)
 });
 
 module.exports = app;

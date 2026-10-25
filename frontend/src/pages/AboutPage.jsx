@@ -64,6 +64,7 @@ export default function AboutPage() {
       <div className="panel">
         <h3>DSA ที่ใช้ในโปรเจกต์</h3>
         <ul>
+          <li>Custom Hash Table (ฝั่ง Express) — cache ผลค้นหา มี TTL และ warm-up</li>
           <li>Graph + BFS — NavBar (directed), เส้นทางสั้นสุดระหว่างหนังสือ (undirected)</li>
           <li>Trie — autocomplete · Merge Sort — เรียงผลลัพธ์ · Binary Search — กระโดดไปปี</li>
           <li>Queue — โหลดเพิ่ม · Stack — ดูล่าสุด · Set — หมวดหมู่ร่วม · Fisher–Yates — สุ่ม</li>

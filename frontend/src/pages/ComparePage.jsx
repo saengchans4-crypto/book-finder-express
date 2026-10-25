@@ -26,7 +26,7 @@ export default function ComparePage() {
   return (
     <section>
       <h2 className="serif">เปรียบเทียบหนังสือ</h2>
-      {!compare.length && <p className="empty">ยังไม่ได้เลือก — กลับไปหน้าค้นหาแล้วกด "เปรียบเทียบ" ที่การ์ด (สูงสุด 3 เล่ม)</p>}
+      {!compare.length && <p className="empty">ยังไม่ได้เลือก — กลับไปหน้าหลักแล้วกด "เปรียบเทียบ" ที่การ์ด (สูงสุด 3 เล่ม)</p>}
       <div className="cols">
         {compare.map((b) => (
           <div className="panel" key={b.key}>

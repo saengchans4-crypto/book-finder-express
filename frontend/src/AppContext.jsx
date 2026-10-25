@@ -9,6 +9,7 @@ export function AppProvider({ children }) {
   const trie = useRef(new Trie());
   const index = useRef(new Map());   // key -> book (hash map ไว้ค้นเร็ว)
   const pages = useRef(new Queue()); // คิว offset ที่ยังไม่โหลด
+  const reqId = useRef(0);           // เลขคำขอล่าสุด กันผลของคำค้นเก่ามาทับผลใหม่
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState([]);
   const [total, setTotal] = useState(0);
@@ -20,10 +21,12 @@ export function AppProvider({ children }) {
   const ingest = (docs) => docs.forEach((d) => { trie.current.insert(d.title || ''); index.current.set(d.key, d); });
 
   const run = async (q) => {
+    const id = ++reqId.current;
     setQuery(q); setStatus('loading'); setBooks([]);
     pages.current = new Queue();
     try {
       const data = await searchBooks(q, 0);
+      if (id !== reqId.current) return; // มีการค้นใหม่แล้ว ทิ้งผลเก่า
       const docs = data.docs || [];
       ingest(docs);
       setBooks(docs);
@@ -31,15 +34,17 @@ export function AppProvider({ children }) {
       for (let off = 18; off < Math.min(data.numFound || 0, 90); off += 18) pages.current.enqueue(off);
       setHasMore(pages.current.size > 0);
       setStatus('ready');
-    } catch { setStatus('error'); }
+    } catch { if (id === reqId.current) setStatus('error'); }
   };
 
   const more = async () => {
     if (!pages.current.size) return;
+    const id = reqId.current;
     const off = pages.current.dequeue();
     setHasMore(pages.current.size > 0);
     try {
       const data = await searchBooks(query, off);
+      if (id !== reqId.current) return; // ระหว่างโหลดเพิ่มมีการค้นใหม่ ทิ้งผลเก่า
       const docs = data.docs || [];
       ingest(docs);
       setBooks((b) => [...b, ...docs]);
