@@ -1,4 +1,4 @@
-# Stacks — Open Library Explorer (React + React Router)
+# Book Finder — Open Library Explorer (React + React Router)
 
 Final project ต่อยอดจากเว็บค้นหาหนังสือ ใช้ [Open Library API](https://openlibrary.org/developers/api)
 สร้างด้วย **React + Vite + React Router** และใช้ **Graph** เป็นแกนของระบบ Navigation

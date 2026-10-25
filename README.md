@@ -1,4 +1,4 @@
-# Stacks — Book Finder (React + Vite + Express)
+# Book Finder (React + Vite + Express)
 
 งานต่อยอด API วิชา 801201 · ใช้ [Open Library API](https://openlibrary.org/developers/api)
 Frontend: React + Vite + React Router · Backend: Express (proxy + validate + cache)
