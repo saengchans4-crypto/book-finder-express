@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../AppContext';
 import { intersectAll } from '../dsa';
 import { buildBookGraph, shortestPath } from '../graph';
+import { workId } from '../api';
 
 export default function ComparePage() {
   const { compare, books, toggleCompare } = useApp();
+  const location = useLocation();
 
   const shared = intersectAll(compare.map((b) => (b.subject || []).map((s) => s.toLowerCase())));
 
@@ -16,9 +19,17 @@ export default function ComparePage() {
   }, [books, compare]);
 
   const path = compare.length >= 2 ? shortestPath(graph, 'book:' + compare[0].key, 'book:' + compare[1].key) : null;
-  const title = (k) => (books.concat(compare).find((b) => b.key === k) || {}).title || k;
+
+  // ชื่อหนังสือที่คลิกได้ → เปิดหน้าต่างรายละเอียดทับหน้านี้ (ใช้ state.background เหมือนหน้าหลัก)
+  const bookLink = (b) => (
+    <Link className="booklink" to={`/book/${workId(b.key)}`} state={{ background: location }}>{b.title}</Link>
+  );
   const label = (n) => {
-    if (n.startsWith('book:')) return '📖 ' + title(n.slice(5));
+    if (n.startsWith('book:')) {
+      const key = n.slice(5);
+      const b = books.concat(compare).find((x) => x.key === key);
+      return <>📖 {b ? bookLink(b) : key}</>;
+    }
     if (n.startsWith('author:')) return '✍️ ' + n.slice(7);
     return '🏷️ ' + n.slice(8);
   };
@@ -30,7 +41,7 @@ export default function ComparePage() {
       <div className="cols">
         {compare.map((b) => (
           <div className="panel" key={b.key}>
-            <b>{b.title}</b>
+            <b>{bookLink(b)}</b>
             <div className="meta">{(b.author_name || []).join(', ')} · {b.first_publish_year || '-'}</div>
             <button className="btn small" onClick={() => toggleCompare(b)}>เอาออก</button>
           </div>

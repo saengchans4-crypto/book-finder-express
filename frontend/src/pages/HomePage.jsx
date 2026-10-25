@@ -9,7 +9,7 @@ const yearAsc = (b) => b.first_publish_year || 9999;
 const SEEDS = ['love', 'war', 'space', 'mystery', 'ocean', 'dream', 'city', 'magic', 'journey', 'science'];
 
 export default function HomePage() {
-  const { query, books, total, status, hasMore, run, more, suggest, recent, compare, toggleCompare } = useApp();
+  const { query, books, total, status, hasMore, page, lastPage, pageCount, run, more, goToPage, suggest, recent, compare, toggleCompare } = useApp();
   const location = useLocation();
   const [text, setText] = useState(query);
   const [sug, setSug] = useState([]);
@@ -50,6 +50,9 @@ export default function HomePage() {
     const pool = SEEDS.filter((s) => s !== query);
     run(shuffle(pool)[0]);
   };
+
+  // เปลี่ยนหน้าแล้วเลื่อนกลับขึ้นบน
+  const goTo = (p) => { goToPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return (
     <section>
@@ -109,10 +112,18 @@ export default function HomePage() {
           {status === 'error' && (
             <p className="empty">
               เชื่อมต่อไม่สำเร็จ{' '}
-              <button className="btn small" onClick={() => run(query || shuffle(SEEDS)[0])}>ลองใหม่</button>
+              <button className="btn small" onClick={() => run(query || shuffle(SEEDS)[0], page)}>ลองใหม่</button>
             </p>
           )}
-          {hasMore && <button className="btn loadmore" onClick={more}>โหลดเพิ่ม</button>}
+
+          {pageCount > 1 && (
+            <div className="pager">
+              <button className="btn" disabled={page <= 1 || status === 'loading'} onClick={() => goTo(page - 1)}>‹ ก่อนหน้า</button>
+              <span className="pager-info">หน้า {page === lastPage ? page : `${page}–${lastPage}`} / {pageCount}</span>
+              <button className="btn primary" disabled={lastPage >= pageCount || status === 'loading'} onClick={() => goTo(lastPage + 1)}>ถัดไป ›</button>
+            </div>
+          )}
+          {hasMore && <button className="btn loadmore" onClick={more}>โหลดเพิ่มในหน้านี้</button>}
         </div>
 
         <aside className="rail">
@@ -135,7 +146,7 @@ export default function HomePage() {
             <ul className="rail-list">
               {compare.map((b) => (
                 <li key={b.key}>
-                  <span>{b.title}</span>
+                  <Link className="booklink" to={`/book/${workId(b.key)}`} state={{ background: location }}>{b.title}</Link>
                   <button className="x" onClick={() => toggleCompare(b)} aria-label="เอาออก">✕</button>
                 </li>
               ))}

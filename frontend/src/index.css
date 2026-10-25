@@ -112,3 +112,10 @@ select,input[type=number]{padding:7px 10px;font:inherit;font-size:.85rem;border:
 .tbl th{background:var(--soft);color:var(--navy)}
 .graphviz{width:100%;max-width:360px;display:block;margin:10px auto}
  
+/* ปุ่มเปลี่ยนหน้า */
+.pager{display:flex;justify-content:center;align-items:center;gap:18px;margin:36px 0 0;flex-wrap:wrap}
+.pager-info{color:var(--muted);font-size:.9rem}
+.pager+.loadmore{margin-top:16px}
+/* ชื่อหนังสือที่คลิกได้ในส่วนเปรียบเทียบ */
+.booklink{border-bottom:1px dotted var(--muted)}
+.booklink:hover{color:var(--accent);border-color:var(--accent)}
