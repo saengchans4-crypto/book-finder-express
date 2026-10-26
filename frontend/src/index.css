@@ -175,17 +175,9 @@ select,input[type=number]{padding:7px 10px;font:inherit;font-size:.85rem;border:
 .rail .rail-list li:nth-child(8){--c:20}
 /* เอาแถบสีออกจากรายการด้านขวา เหลือแค่การ์ดมีกรอบ */
 .rail .rail-list li{border-left:1px solid var(--line)}
-/* การ์ดหนังสือหน้าหลัก: แถบสีประจำเล่มด้านบน */
+/* การ์ดหนังสือหน้าหลัก: ไม่มีกรอบ มีแถบสีประจำเล่มทางซ้าย */
 .grid .card{
-  border-top:5px solid hsl(var(--h,200) 50% 42%);
-  border-radius:10px;
-  background:var(--card);
-  padding:0 12px 12px;
-  gap:6px;
-  box-shadow:0 1px 3px rgba(0,0,0,.06);
+  border-left:5px solid hsl(var(--h,200) 50% 42%);
+  padding-left:12px;
 }
-.grid .card > a{display:block;margin:12px 0 0}
 .grid .card.hl{outline-offset:4px}
-
-/* เอาแถบสีออกจากรายการด้านขวา เหลือแค่การ์ดมีกรอบ */
-.rail .rail-list li{border-left:1px solid var(--line)}
