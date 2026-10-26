@@ -131,3 +131,45 @@ select,input[type=number]{padding:7px 10px;font:inherit;font-size:.85rem;border:
   border-left:10px solid hsl(var(--h,200) 55% 18%);
 }
 .nocover span{display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+/* การ์ดรายการใน sidebar (ดูล่าสุด / เปรียบเทียบ / หนังสือที่เกี่ยวข้อง) */
+.rail .rail-list{gap:10px}
+.rail .rail-list li{
+  display:flex;
+  align-items:stretch;
+  gap:0;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-left:5px solid hsl(var(--c,200) 45% 45%);
+  border-radius:10px;
+  overflow:hidden;
+  transition:transform .15s,box-shadow .15s,background .15s;
+}
+.rail .rail-list li:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(0,0,0,.12);
+  background:var(--soft);
+}
+/* ให้กดได้ทั้งการ์ด ไม่ใช่แค่ตัวหนังสือ */
+.rail .rail-list li a{
+  flex:1;
+  display:block;
+  padding:10px 12px;
+  line-height:1.35;
+  border-bottom:none;
+}
+.rail .rail-list li a:hover{color:var(--accent)}
+.rail .rail-list li .x{
+  padding:0 12px;
+  align-self:stretch;
+  display:flex;
+  align-items:center;
+}
+/* แถบสีด้านซ้ายของแต่ละเล่มไม่ซ้ำกัน */
+.rail .rail-list li:nth-child(1){--c:200}
+.rail .rail-list li:nth-child(2){--c:12}
+.rail .rail-list li:nth-child(3){--c:150}
+.rail .rail-list li:nth-child(4){--c:40}
+.rail .rail-list li:nth-child(5){--c:280}
+.rail .rail-list li:nth-child(6){--c:330}
+.rail .rail-list li:nth-child(7){--c:100}
+.rail .rail-list li:nth-child(8){--c:20}
