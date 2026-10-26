@@ -4,7 +4,7 @@ import { useApp } from '../AppContext';
 import BookCard from '../components/BookCard';
 import { mergeSort, binarySearchClosest, shuffle } from '../dsa';
 import { workId } from '../api';
-
+import { buildBookGraph, relatedBooks } from '../graph';
 const yearAsc = (b) => b.first_publish_year || 9999;
 const SEEDS = ['love', 'war', 'space', 'mystery', 'ocean', 'dream', 'city', 'magic', 'journey', 'science'];
 
@@ -31,6 +31,15 @@ export default function HomePage() {
     if (sort === 'title') return mergeSort(books, (a, b) => (a.title || '').localeCompare(b.title || ''));
     return books;
   }, [books, sort]);
+
+    // หนังสือที่เกี่ยวข้องกับเล่มที่เปิดดูล่าสุด (Graph BFS ผ่านผู้แต่ง/หมวดหมู่)
+  const base = recent[0];
+  const related = useMemo(() => {
+    if (!base) return [];
+    const g = buildBookGraph([base, ...books]);
+    const byKey = new Map(books.map((b) => [b.key, b]));
+    return relatedBooks(g, base.key, 5).map((k) => byKey.get(k)).filter(Boolean);
+  }, [base, books]);
 
   const onType = (v) => { setText(v); setSug(v.trim().length >= 2 ? suggest(v.trim()) : []); };
   const submit = (q) => { const v = q.trim(); if (v) { setSug([]); run(v); } };
@@ -153,7 +162,22 @@ export default function HomePage() {
             </ul>
             {compare.length >= 2 && <Link className="btn small" to="/compare">ดูผลเปรียบเทียบ</Link>}
           </div>
-        </aside>
+                  <div className="panel">
+            <h3>หนังสือที่เกี่ยวข้อง</h3>
+            <p className="rail-sub">Graph BFS ผ่านผู้แต่ง/หมวดหมู่ของเล่มที่เปิดล่าสุด</p>
+            {!base && <p className="empty">เปิดดูหนังสือสักเล่มก่อน</p>}
+            {base && related.length === 0 && <p className="empty">ไม่พบเล่มที่เชื่อมโยงในผลที่โหลดอยู่</p>}
+            <ul className="rail-list">
+              {related.map((b) => (
+                <li key={b.key}>
+                  <Link className="booklink" to={`/book/${workId(b.key)}`} state={{ background: location }}>
+                    {b.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          </aside>
       </div>
     </section>
   );

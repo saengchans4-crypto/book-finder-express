@@ -67,3 +67,20 @@ export function shortestPath(g, start, end) {
   }
   return null;
 }
+// BFS หาหนังสือที่เกี่ยวข้อง: เดินจากหนังสือ → ผู้แต่ง/หมวด → หนังสืออื่น (ไม่เกิน 2 ชั้น)
+export function relatedBooks(g, startKey, limit = 5) {
+  const start = 'book:' + startKey;
+  if (!g[start]) return [];
+  const dist = { [start]: 0 };
+  const queue = [start];
+  const out = [];
+  while (queue.length && out.length < limit) {
+    const cur = queue.shift();
+    if (cur.startsWith('book:') && cur !== start) out.push(cur.slice(5));
+    if (dist[cur] >= 2) continue;
+    for (const nb of g[cur]) {
+      if (!(nb in dist)) { dist[nb] = dist[cur] + 1; queue.push(nb); }
+    }
+  }
+  return out;
+}
