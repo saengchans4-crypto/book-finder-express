@@ -119,3 +119,15 @@ select,input[type=number]{padding:7px 10px;font:inherit;font-size:.85rem;border:
 /* ชื่อหนังสือที่คลิกได้ในส่วนเปรียบเทียบ */
 .booklink{border-bottom:1px dotted var(--muted)}
 .booklink:hover{color:var(--accent);border-color:var(--accent)}
+/* การ์ดที่ไม่มีปก: ใช้สีจากชื่อเรื่องแทน */
+.nocover{
+  padding:14px;
+  text-align:center;
+  background:linear-gradient(160deg,hsl(var(--h,200) 45% 38%),hsl(var(--h,200) 50% 22%));
+  color:#fff;
+  font-weight:600;
+  font-size:.9rem;
+  line-height:1.3;
+  border-left:10px solid hsl(var(--h,200) 55% 18%);
+}
+.nocover span{display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
