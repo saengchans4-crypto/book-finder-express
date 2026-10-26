@@ -111,7 +111,7 @@ App                      state: dark
 
 **ค่าที่เก็บใน `useRef` (เปลี่ยนแล้วไม่ต้องวาดหน้าจอใหม่):** `trie` (Trie สำหรับคำแนะนำ), `index` (Map key → หนังสือ), `pages` (Queue ของ offset), `reqId` (เลขคำขอล่าสุดไว้ทิ้งผลค้นหาที่ล้าสมัย)
 
-**ค่าที่ไม่เก็บเป็น state เพราะคำนวณจาก state/props อื่นได้:** `sorted` (`useMemo` จาก `books` + `sort`), `shared`, `graph` และ `path` ใน `ComparePage` (คำนวณจาก `compare`/`books`), `picked` ใน `BookCard` (จาก `compare`), `current` และ `links` ใน `NavBar` (จาก URL + `pageGraph`), `orphans`/`deadEnds` ใน `AboutPage`
+**ค่าที่ไม่เก็บเป็น state เพราะคำนวณจาก state/props อื่นได้:** `sorted` (`useMemo` จาก `books` + `sort`), `shared`, `graph` และ `path` ใน `ComparePage` (คำนวณจาก `compare`/`books`), `picked` ใน `BookCard` (จาก `compare`), `current` และ `links` ใน `NavBar` (จาก URL + `pageGraph`), `orphans`/`deadEnds` ใน `AboutPage` รายการหนังสือที่เกี่ยวข้อง (`related`) ก็เป็นค่าที่ไม่เก็บเป็น state เช่นกัน เพราะคำนวณได้จากข้อมูลที่มีอยู่แล้ว คือเล่มที่เปิดดูล่าสุด (`recent[0]`) กับรายการหนังสือที่โหลดอยู่ (`books`) โดยใช้ `useMemo` สร้างกราฟด้วย `buildBookGraph` แล้วเรียก `relatedBooks` (BFS) ใหม่เมื่อสองค่านี้เปลี่ยน การไม่เก็บซ้ำเป็น state ช่วยให้ข้อมูลไม่ขัดแย้งกันและไม่ต้องเขียนโค้ดอัปเดตเพิ่ม
 
 รายการหนังสือที่เกี่ยวข้อง (`related`) ก็เป็นค่าที่ไม่เก็บเป็น state เช่นกัน เพราะคำนวณได้จากข้อมูลที่มีอยู่แล้ว คือเล่มที่เปิดดูล่าสุด (`recent[0]`) กับรายการหนังสือที่โหลดอยู่ (`books`) โดยใช้ `useMemo` สร้างกราฟด้วย `buildBookGraph` แล้วเรียก `relatedBooks` (BFS) ใหม่เมื่อสองค่านี้เปลี่ยน การไม่เก็บซ้ำเป็น state ช่วยให้ข้อมูลไม่ขัดแย้งกันและไม่ต้องเขียนโค้ดอัปเดตเพิ่ม
 
