@@ -17,7 +17,7 @@ npm run dev
 cd frontend
 npm install
 npm run dev
-npm test      # ตรวจ graph.js และ dsa.js (12 เทสต์)
+npm test      # ตรวจ graph.js และ dsa.js (14 เทสต์)
 ```
 
 Vite ตั้ง proxy ให้ `/api` ไปที่ Express (`frontend/vite.config.js`) จึงเปิดใช้งานที่ `http://localhost:5173`
@@ -76,12 +76,12 @@ App                      state: dark
 
 | ข้อแนะนำจากงานแรก | สิ่งที่แก้ในงานนี้ | หลักฐาน Before / After |
 |---|---|---|
-| หน้าแรกโหลด Harry Potter ตายตัว ให้เปลี่ยนเป็นสุ่มหนังสือ | หน้าแรกสุ่มหมวดด้วย Fisher–Yates ตอนเปิด และปุ่ม 🎲 สุ่มหมวดใหม่ (ไม่ซ้ำหมวดเดิม) พร้อมแสดงรายการทั้งหมด (`HomePage.jsx`) | Before: ![before](docs/before-home.png) · After: ![after 1](docs/after-home-1.png) ![after 2](docs/after-home-2.png) (กดสุ่ม 2 ครั้งได้คนละหมวด) |
-| คลิกดูหนังสือจาก "ดูล่าสุด" (Stack) ให้เหมือนคลิกจากการ์ดปกติ | ทั้งการ์ด, แผงดูล่าสุด และหน้า History ใช้ `<Link to="/book/:id" state={{ background }}>` เปิดหน้าต่างรายละเอียด (`BookPage`) แบบเดียวกัน | Before: ![before](docs/before-recent.png) · After: ![after](docs/after-recent.png) |
-| ปรับ interface ให้สวยขึ้น | ออกแบบใหม่แบบ minimal    (สีตามสไลด์งานแรก, ฟอนต์ STIX Two Text ลาย Times สำหรับอังกฤษ + Noto Sans Thai สำหรับไทย, การ์ดเน้นปก, โหมดมืด, การ์ดโครงร่างตอนโหลด, หน้าต่างรายละเอียดมีปุ่มปิด) | Before: ![before](docs/before-ui.png) · After: ![after](docs/after-ui.png) |
+| หน้าแรกโหลด Harry Potter ตายตัว ให้เปลี่ยนเป็นสุ่มหนังสือ | หน้าแรกสุ่มหมวดด้วย Fisher–Yates ตอนเปิด และปุ่ม 🎲 สุ่มหมวดใหม่ (ไม่ซ้ำหมวดเดิม) พร้อมแสดงรายการทั้งหมด (`HomePage.jsx`) | Before: ![before](docs/before-home.png) · After: ![after 1](docs/after-home-2.png) ![after 2](docs/after-home-3.png) (กดสุ่ม 2 ครั้งได้คนละหมวด) |
+| คลิกดูหนังสือจาก "ดูล่าสุด" (Stack) ให้เหมือนคลิกจากการ์ดปกติ | ทั้งการ์ด, แผงดูล่าสุด และหน้า History ใช้ `<Link to="/book/:id" state={{ background }}>` เปิดหน้าต่างรายละเอียด (`BookPage`) แบบเดียวกัน | Before: ![before](docs/before-recent.png) · After: ![after](docs/after-recent-1.png) ![after 2](docs/after-recent-2.png) |
+| ปรับ interface ให้สวยขึ้น | ออกแบบใหม่แบบ minimal    (สีตามสไลด์งานแรก, ฟอนต์ STIX Two Text ลาย Times สำหรับอังกฤษ + Noto Sans Thai สำหรับไทย, การ์ดเน้นปก, โหมดมืด, การ์ดโครงร่างตอนโหลด, หน้าต่างรายละเอียดมีปุ่มปิด) | Before: ![before](docs/before-home.png) · After: ![after](docs/after-home-1.png) |
 | (เพิ่มเอง) การ์ดที่ไม่มีปกขึ้นกล่องเทา "ไม่มีปก" ดูโล่ง | สร้างสีจากชื่อเรื่องด้วย hash `hash * 31 + charCode` (สูตรเดียวกับ Hash Table ฝั่ง backend) ได้กล่องสีพร้อมชื่อเรื่องและแถบสันปกด้านซ้าย ชื่อเดียวกันได้สีเดิมทุกครั้ง (`BookCard.jsx`, `index.css`) | Before: ![before](docs/before-cover.png) · After: ![after](docs/after-cover.png) |
-| (เพิ่มเอง) หน้าหลักไม่มีทางไปหนังสือที่เกี่ยวข้องกัน | เพิ่มแผง "หนังสือที่เกี่ยวข้อง" ใช้ `relatedBooks` (Graph BFS ผ่านผู้แต่ง/หมวดหมู่ ไม่เกิน 2 ชั้น) จากเล่มที่เปิดดูล่าสุด กดชื่อแล้วเปิดหน้าต่างรายละเอียดเหมือนแผงอื่น (`graph.js`, `HomePage.jsx`) | Before: ![before](docs/before-related.png) · After: ![after](docs/after-related.png) |
-| (เพิ่มเอง) เปลี่ยนหน้าผลลัพธ์ไม่ได้ และชื่อในแผงเปรียบเทียบคลิกไม่ได้ | เพิ่มปุ่ม ก่อนหน้า / ถัดไป พร้อมแถบ "หน้า X / N" และปุ่ม "โหลดเพิ่มในหน้านี้" (Queue ของ offset) ส่วนชื่อหนังสือในแผงเปรียบเทียบและหน้า /compare คลิกเปิดหน้าต่างรายละเอียดได้ (`AppContext.jsx`, `HomePage.jsx`, `ComparePage.jsx`) | Before: ![before](docs/before-pager.png) · After: ![after](docs/after-pager.png) |
+| (เพิ่มเอง) หน้าหลักไม่มีทางไปหนังสือที่เกี่ยวข้องกัน | เพิ่มแผง "หนังสือที่เกี่ยวข้อง" ใช้ `relatedBooks` (Graph BFS ผ่านผู้แต่ง/หมวดหมู่ ไม่เกิน 2 ชั้น) จากเล่มที่เปิดดูล่าสุด กดชื่อแล้วเปิดหน้าต่างรายละเอียดเหมือนแผงอื่น (`graph.js`, `HomePage.jsx`) | Before: ![before](docs/before-related.png) (ไม่มีแผงนี้ มีแค่แผงเปรียบเทียบ) · After: ![after](docs/after-related.png) |
+| (เพิ่มเอง) หน้าหลักไม่มีแถบเมนูนำทางไปหน้าอื่น | เพิ่มแถบเมนูด้านบน (เปรียบเทียบ / ดูล่าสุด / Graph-เกี่ยวกับ) สร้างจาก `pageGraph` (Graph adjacency list) ลิงก์ที่แสดงเปลี่ยนตามหน้าปัจจุบัน และตรวจหน้า orphan/ทางตันด้วย BFS (`App.jsx`, `graph.js`) | Before: ![before](docs/before-nav.png) · After: ![after](docs/after-nav-1.png) ![after](docs/after-nav-2.png) ![after](docs/after-nav-3.png) ![after](docs/after-nav-4.png) ![after](docs/after-nav-5.png)|
 
 ## 8.3 ตาราง useState
 
