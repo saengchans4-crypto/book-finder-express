@@ -18,7 +18,7 @@ export default function BookCard({ book, highlight }) {
   const id = workId(book.key);
   const n = book.edition_count || 0;
   return (
-    <div id={'bk-' + id} className={'card' + (highlight ? ' hl' : '')}>
+    <div id={'bk-' + id} className={'card' + (highlight ? ' hl' : '')} style={{ '--h': coverHue(book.title) }}>
       <Link to={`/book/${id}`} state={{ background: location }} onClick={() => view(book)}>
         {book.cover_i ? <img src={coverUrl(book.cover_i)} alt="" loading="lazy" /> : <div className="nocover" style={{ '--h': coverHue(book.title) }}><span>{book.title}</span></div>}
         <h3>{book.title}</h3>
