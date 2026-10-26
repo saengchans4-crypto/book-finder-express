@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pageGraph, pagePaths, canReach, checkGraph, buildBookGraph, shortestPath } from '../src/graph.js';
+import { pageGraph, pagePaths, canReach, checkGraph, buildBookGraph, shortestPath, relatedBooks } from '../src/graph.js';
 
 test('checkGraph: ไม่มี orphans และไม่มี deadEnds', () => {
   assert.deepEqual(checkGraph(), { orphans: [], deadEnds: [] });
@@ -38,4 +38,19 @@ test('shortestPath: ไม่เชื่อมกัน → null', () => {
   const g = buildBookGraph(books);
   assert.equal(shortestPath(g, 'book:/works/1', 'book:/works/4'), null);
   assert.equal(shortestPath(g, 'book:/works/1', 'book:/works/999'), null);
+});
+
+test('relatedBooks: หาเล่มที่ผู้แต่ง/หมวดเดียวกัน และไม่รวมตัวเอง', () => {
+  const g = buildBookGraph(books);
+  const r = relatedBooks(g, '/works/1');
+  assert.ok(r.includes('/works/2')); // หมวด War เดียวกัน
+  assert.ok(r.includes('/works/3')); // ผู้แต่ง X เดียวกัน
+  assert.ok(!r.includes('/works/1')); // ไม่รวมตัวเอง
+  assert.ok(!r.includes('/works/4')); // ไม่เชื่อมกัน
+});
+
+test('relatedBooks: limit ทำงาน และ key ที่ไม่มีในกราฟคืน []', () => {
+  const g = buildBookGraph(books);
+  assert.equal(relatedBooks(g, '/works/1', 1).length, 1);
+  assert.deepEqual(relatedBooks(g, '/works/999'), []);
 });
