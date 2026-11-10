@@ -67,8 +67,8 @@ App                      state: dark
 
 | ชื่อ-สกุล | รหัสนักศึกษา | ชิ้นงานที่รับผิดชอบ (ไฟล์ / component / route / DSA) | ช่วงที่นำเสนอในคลิป |
 |---|---|---|---|
-| สิรวิชญ์ แสงจันทร์ | 681310411 | พัฒนาร่วมกันทุกส่วน · รับผิดชอบอธิบาย: `backend/server.js` (validate, Hash Table cache, warm-up), `graph.js`, NavBar ใน `App.jsx`, `AboutPage.jsx`, `ComparePage.jsx`, `dsa.js` | ช่วงที่ 1, 4 (Graph.js), 5, 6 |
-| ภัคจิรา อินชูใจ | 681310788 | พัฒนาร่วมกันทุกส่วน · รับผิดชอบอธิบาย: `HomePage.jsx`, `BookCard.jsx`, `BookPage.jsx`, `HistoryPage.jsx`, `AppContext.jsx`, `index.css` | ช่วงที่ 2, 3, 4 (useState, useEffect, Component Tree) |
+| สิรวิชญ์ แสงจันทร์ | 681310411 | พัฒนาร่วมกันทุกส่วน · รับผิดชอบอธิบาย: `backend/server.js` (validate, Hash Table cache, warm-up), `graph.js`, NavBar ใน `App.jsx`, `AboutPage.jsx`, `ComparePage.jsx`, `dsa.js` | ช่วงที่ 1, 4, 5, 6 |
+| ภัคจิรา อินชูใจ | 681310788 | พัฒนาร่วมกันทุกส่วน · รับผิดชอบอธิบาย: `HomePage.jsx`, `BookCard.jsx`, `BookPage.jsx`, `HistoryPage.jsx`, `AppContext.jsx`, `index.css` | ช่วงที่ 2, 3, 4 (Component Tree) |
 
 > หมายเหตุ: ทั้งสองคนพัฒนาร่วมกันบนเครื่องของสิรวิชญ์ ประวัติ commit จึงอยู่ในบัญชี `sirawit` คอลัมน์ "ชิ้นงานที่รับผิดชอบ" ระบุส่วนที่แต่ละคนรับผิดชอบอธิบายในคลิป
 
